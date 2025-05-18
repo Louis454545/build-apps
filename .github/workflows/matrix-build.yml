@@ -1,13 +1,7 @@
 name: Matrix Build Modules
 on:
   workflow_call:
-    secrets:
-      TELEGRAM_TOKEN:
-        description: "Telegram Bot Token"
-        required: true
-      TELEGRAM_TO:
-        description: "Telegram Chat ID"
-        required: true
+
     inputs:
       from_ci:
         type: boolean
@@ -101,13 +95,7 @@ jobs:
     env:
       RELEASE_VERSION: ${{ needs.generate-release.outputs.version }}
     steps:
-      - uses: actions/setup-java@v4
-        with:
-          distribution: "adopt"
-          java-version: "20"
-
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
@@ -116,6 +104,24 @@ jobs:
         run: |
            ./gen_sep_config.sh config.toml ${{ matrix.id }} sep_config.toml
            cat sep_config.toml
+
+      - name: Cache downloaded tools and intermediate build files
+        uses: actions/cache@v4
+        id: build_cache
+        with:
+          path: |
+            temp
+            revanced-magisk/bin
+            bin/apksigner.jar
+          key: ${{ runner.os }}-${{ matrix.id }}-${{ hashFiles('sep_config.toml') }}-${{ hashFiles('utils.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.id }}-${{ hashFiles('sep_config.toml') }}-
+            ${{ runner.os }}-${{ matrix.id }}-
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "adopt"
+          java-version: "20"
 
       - name: Build modules/APKs
         continue-on-error: true
@@ -195,33 +201,3 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  push-notify:
-    if: ${{ github.ref_name == 'main' }}
-    needs: [generate-release, run, release]
-    name: Push Notification
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11' # The python version to use.
-          cache: 'pip'
-          cache-dependency-path: 'push-notify/requirements.txt'
-
-      - name: Install dependencies
-        run: pip install -r push-notify/requirements.txt
-
-      - name: Create google-auth json
-        run: echo "${{ secrets.GOOGLE_AUTH_JSON }}" | base64 -d > google-services.json
-
-      - name: Run push notification script
-        run: |
-          release_tag="${{ needs.generate-release.outputs.version }}"
-          release_body=$(gh release view $release_tag --json body -q .body)
-          python3 push-notify --title "New Release $release_tag" --body "$release_body" --api_url ${{ secrets.NOTIF_API_URL }} --bearer ${{ secrets.NOTIF_API_BEARER }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

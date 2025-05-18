@@ -42,6 +42,19 @@ jobs:
             fi
           fi
 
+      - name: Cache downloaded tools and intermediate build files
+        uses: actions/cache@v4
+        id: build_cache
+        with:
+          path: |
+            temp
+            revanced-magisk/bin
+            bin/apksigner.jar
+          key: ${{ runner.os }}-full-build-${{ hashFiles('config.toml') }}-${{ hashFiles('utils.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-full-build-${{ hashFiles('config.toml') }}-
+            ${{ runner.os }}-full-build-
+
       - name: Get next version code
         id: next_ver_code
         env:
