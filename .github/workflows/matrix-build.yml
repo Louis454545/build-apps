@@ -195,36 +195,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  telegram-notify:
-    if: ${{ github.ref_name == 'main' }}
-    needs: [generate-release, run, release]
-    name: Notify Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10' # The python version to use.
-          cache: 'pip'
-          cache-dependency-path: 'telegram-script/requirements.txt'
-        
-      - name: Install dependencies
-        run: pip install -r telegram-script/requirements.txt
-      
-      - name: Run telegram notification script
-        run: python3 telegram-script
-          
-      - name: Telegram Channel Update
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          format: markdown
-          message_file: release_notification.md
-  
   push-notify:
     if: ${{ github.ref_name == 'main' }}
     needs: [generate-release, run, release]

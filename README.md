@@ -1,5 +1,4 @@
 # ReVanced Magisk Module
-[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/revanced_apks_web)
 [![Build Modules](https://github.com/revanced-apks/build-apps/actions/workflows/build.yml/badge.svg)](https://github.com/revanced-apks/build-apps/actions/workflows/build.yml)
 [![CI](https://github.com/revanced-apks/build-apps/actions/workflows/ci.yml/badge.svg?event=schedule)](https://github.com/revanced-apks/build-apps/actions/workflows/ci.yml)
 
