@@ -64,6 +64,9 @@ jobs:
           elif [[ "${{ needs.build.result }}" == "failure" ]]; then
             echo "Build job failed"
             exit 1
+          elif [[ "${{ needs.build.result }}" == "skipped" ]]; then
+            echo "Build job was skipped - workflow completed successfully"
+            exit 0
           else
             echo "Workflow completed successfully"
             exit 0
